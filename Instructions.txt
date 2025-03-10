@@ -1,0 +1,22 @@
+
+Note: steps 01 - 04, need to do it once, 
+      steps 05 - 11, need to do it everytime need to use the script.
+
+01- Install Inkscape 1.4
+02- Install GhostScript 10.04.0
+03- Install ImageMagik-7.1.1
+04- Add the folowing paths to the Environmment Variable:
+  C:\Program Files\Inkscape\bin
+  C:\Program Files\gs\gs10.04.0\bin
+  C:\Program Files\gs\gs10.04.0\lib
+  C:\Program Files\ImageMagick-7.1.1-Q16-HDRI
+  C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\lib
+  
+  
+05- Place the content to the folder  ./in and delete every think in the folder ./out
+06- Open oXygen and task.pr.
+07- In oXygen, right-click the "in" folder and select Transform > transform with, and then select "mtask".
+08- After the previews step is done(ONLY AFTER IT"S DONE), duble-click on the script "namespace.bat"
+09- duble-click on the script epsToSvg.bat
+10- duble-click on the script tiffToPng.bat
+11- Check the results in the "out" folder.
