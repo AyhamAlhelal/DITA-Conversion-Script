@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Arbortext, Inc., 1988-2022, v.4002-->
+<?Pub UDT instructions _comment FontColor="red"?>
+<?Pub Inc?>
+<!--After creating the table schema from windchill and editing the content first time, id attribute has to be updated by following the steps given below
+1. Keep the cursor on table element and press "CTRL + D"
+2. In the reference tab, adjacent to id attribute, update id button is available
+3. Click the update id button and then click on "OK" button
+--><?Pub (instructions)?>
+<?Pub Caret -2?>
+<!--Right column is kept empty to update the relevant content in the respective cells--><?Pub (instructions)?>
+<table id="RelatedDocumentsDocumentCategoryDoc-56B26F16" translate="yes" xml:lang="en"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:ptc:names:arbortext:dita:xsd:techinfo.xsd">
+    <tgroup cols="3">
+        <?PubTbl tgroup dispwid="1226.00px"?>
+        <colspec colname="col1" colwidth="0.83*"/>
+        <colspec colname="COLSPEC1" colwidth="1.06*"/>
+        <colspec colname="COLSPEC2" colwidth="1.06*"/>
+        <thead>
+            <row>
+                <entry colsep="0" rowsep="0" valign="top"><?PubTbl cell border-left-style="none"
+border-top-style="none"?><?Pub _cellfont Shading="#D5D6D8"?>Related
+                    documents</entry>
+                <entry colsep="0" rowsep="0" valign="top"
+                    ><?PubTbl cell border-top-style="none"?><?Pub _cellfont Shading="#D5D6D8"?></entry>
+                <entry rowsep="0" valign="top"><?PubTbl cell border-right-style="none"
+border-top-style="none"?><?Pub _cellfont Shading="#D5D6D8"?></entry>
+            </row>
+            <row>
+                <entry colsep="0" rowsep="0" valign="top"
+                    ><?PubTbl cell border-left-style="none"?><?Pub _cellfont Shading="#D5D6D8"?>Document
+                    category</entry>
+                <entry colsep="0" rowsep="0" valign="top"><?Pub _cellfont
+Shading="#D5D6D8"?>Document name</entry>
+                <entry rowsep="0" valign="top"
+                    ><?PubTbl cell border-right-style="none"?><?Pub _cellfont Shading="#D5D6D8"?>Document
+                    number</entry>
+            </row>
+        </thead>
+        <tbody>
+            <row>
+                <entry colsep="0" rowsep="0"
+                    ><?PubTbl cell border-left-style="none"?><?Pub _cellfont Shading="#D5D6D8"?>Manual</entry>
+                <entry colsep="0" rowsep="0"><?Pub _cellfont Shading="#D5D6D8"?>Installation Manual
+                    for Marine Projects</entry>
+                <entry rowsep="0"><?PubTbl cell border-right-style="none"?><?Pub _cellfont
+Shading="#D5D6D8"?>DOC0004462</entry>
+            </row>
+            <row>
+                <entry colsep="0" rowsep="0"
+                    ><?PubTbl cell border-left-style="none"?><?Pub _cellfont Shading="#D5D6D8"?></entry>
+                <entry colsep="0" rowsep="0"><?Pub _cellfont Shading="#D5D6D8"?>Installation Manual
+                    for Land Projects</entry>
+                <entry rowsep="0"><?PubTbl cell border-right-style="none"?><?Pub _cellfont
+Shading="#D5D6D8"?>P32010</entry>
+            </row>
+            <row>
+                <entry colsep="0" rowsep="0"
+                    ><?PubTbl cell border-left-style="none"?><?Pub _cellfont Shading="#D5D6D8"?></entry>
+                <entry colsep="0" rowsep="0"><?Pub _cellfont Shading="#D5D6D8"?></entry>
+                <entry rowsep="0"><?PubTbl cell border-right-style="none"?><?Pub _cellfont
+Shading="#D5D6D8"?></entry>
+            </row>
+            <row>
+                <entry colsep="0" rowsep="0"
+                    ><?Pub _cellfont Shading="#D5D6D8"?><?PubTbl cell border-left-style="none"?>Technical
+                    Data Sheet</entry>
+                <entry colsep="0" rowsep="0"><?Pub _cellfont Shading="#D5D6D8"?>HI-FOG<tm
+                        tmtype="reg"/> Storage and Handling Instructions</entry>
+                <entry rowsep="0"><?PubTbl cell border-right-style="none"?><?Pub _cellfont
+Shading="#D5D6D8"?>K0009674</entry>
+            </row>
+            <row>
+                <entry colsep="0" rowsep="0"
+                    ><?PubTbl cell border-left-style="none"?><?Pub _cellfont Shading="#D5D6D8"?></entry>
+                <entry colsep="0" rowsep="0"><?Pub _cellfont Shading="#D5D6D8"?>Marioff
+                    Tools</entry>
+                <entry rowsep="0"><?PubTbl cell border-right-style="none"?><?Pub _cellfont
+Shading="#D5D6D8"?>K0006401</entry>
+            </row>
+            <row>
+                <entry colsep="0" rowsep="0"
+                    ><?PubTbl cell border-left-style="none"?><?Pub _cellfont Shading="#D5D6D8"?></entry>
+                <entry colsep="0" rowsep="0"><?Pub _cellfont Shading="#D5D6D8"?></entry>
+                <entry rowsep="0"><?PubTbl cell border-right-style="none"?><?Pub _cellfont
+Shading="#D5D6D8"?></entry>
+            </row>
+            <row>
+                <entry colsep="0" rowsep="0"><?PubTbl cell border-bottom-style="none"
+border-left-style="none"?><?Pub _cellfont Shading="#D5D6D8"?>Third-party
+                    document</entry>
+                <entry colsep="0" rowsep="0"
+                    ><?PubTbl cell border-bottom-style="none"?><?Pub _cellfont Shading="#D5D6D8"?>Safety
+                    data sheets of the chemicals</entry>
+                <entry rowsep="0"><?PubTbl cell border-bottom-style="none"
+border-right-style="none"?><?Pub _cellfont Shading="#D5D6D8"?></entry>
+            </row>
+        </tbody>
+    </tgroup>
+</table>

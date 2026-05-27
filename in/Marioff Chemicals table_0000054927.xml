@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Arbortext, Inc., 1988-2022, v.4002-->
+<?Pub UDT instructions _comment FontColor="red"?>
+<?Pub Inc?>
+<!--After creating the table schema from windchill and editing the content first time, id attribute has to be updated by following the steps given below
+1. Keep the cursor on table element and press "CTRL + D"
+2. In the reference tab, adjacent to id attribute, update id button is available
+3. Click the update id button and then click on "OK" button
+--><?Pub (instructions)?>
+<?Pub Caret -2?>
+<!--Table cells are kept empty to update the content in the relevant cell--><?Pub (instructions)?>
+<table id="ItemNameAndFigureStockCodeUseAdditi-7BF765AE" translate="yes"
+xml:lang="en" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:noNamespaceSchemaLocation="urn:ptc:names:arbortext:dita:xsd:techinfo.xsd">
+<tgroup cols="4">
+<?PubTbl tgroup cbmarg="8.00pt" dispwid="1441.00px"?>
+<colspec colname="col1" colwidth="0.5*"/><colspec colname="col2"
+colwidth="0.24*"/><colspec colname="COLSPEC1" colwidth="0.16*"/>
+<colspec colname="col3"/>
+<thead>
+<row>
+<entry valign="top"><?Pub _cellfont Shading="#D5D6D8"?>Item</entry>
+<entry valign="top"><?Pub _cellfont Shading="#D5D6D8"?>Product code</entry>
+<entry valign="top"><?Pub _cellfont Shading="#D5D6D8"?>Amount</entry>
+<entry valign="top"><?Pub _cellfont Shading="#D5D6D8"?>Description</entry>
+</row>
+</thead>
+<tbody>
+<row>
+<entry>Unisilkon L 641 <image height="25mm"
+href="Unisilikon L 641 60g_0000060102.JPG"></image></entry>
+<entry>L53050.1</entry>
+<entry>60&#xa0;g</entry>
+<entry valign="top">Grease for O-rings, seals and valve pistons.<?Pub
+_newline?>Suitable for seals made of EPDM.<?Pub _newline?>Compatible
+with drinking water.<?Pub _newline?></entry>
+</row>
+<row>
+<entry>Unisilkon L 641<image height="30mm"
+href="Unisilikon L 641 500g_0000060104.JPG"></image></entry>
+<entry>L53050</entry>
+<entry><b>500&#xa0;g</b></entry>
+<entry>Grease for O-rings, seals and valve pistons.<?Pub _newline
+?>Suitable for seals made of EPDM.<?Pub _newline?>Compatible with
+drinking water.</entry>
+</row>
+<row>
+<entry>Kl&#xfc;bersynth VR 69&#x2013;252 N<?Pub _newline?>(Klybersynth
+VR 69&#x2013;252 N)<draft-comment>20.8.2021 LK/Make and add image.
+That will underline the package size to the reader.</draft-comment
+></entry>
+<entry>50000011882</entry>
+<entry>190&#xa0;g</entry>
+<entry>Grease for threads: valve installation and bolts (DIN 2353).<?Pub
+_newline?>Suitable for seals made of EPDM and NBR.<?Pub _newline?>Compatible
+with drinking water.</entry>
+</row>
+<row>
+<entry>Kl&#xfc;bersynth VR 69&#x2013;252 N<?Pub _newline?>(Klybersynth
+VR 69&#x2013;252 N)<draft-comment>20.8.2021 LK/Make and add image.
+That will underline the package size to the reader.</draft-comment
+></entry>
+<entry>L53210</entry>
+<entry><b>1&#xa0;kg</b></entry>
+<entry>Grease for threads: valve installation and bolts (DIN 2353).<?Pub
+_newline?>Suitable for seals made of EPDM and NBR.<?Pub _newline?>Compatible
+with drinking water.</entry>
+</row>
+<row>
+<entry>CRC Dry Lube <image height="25mm"
+href="CRC dry lube_0000060118.JPG"></image></entry>
+<entry>L53080</entry>
+<entry><draft-comment>20.8.2021 LK/Ask the SME at the warehouse what
+is the package size.</draft-comment></entry>
+<entry>Grease for SPU and MSPU gear box chains (land applications).<?Pub
+_newline?><b>Do not use</b> on self-lubricated chains.<p><b>Do not</b
+> transport by air. Hazardous chemical.</p><?Pub _newpage?><draft-comment
+>20.8.2021 LK/Forcing the page break with table properties does not
+work in our editor. Ask ESR to make it possible. Newpage singleton
+tag used as a workaround until the standard feature is available.</draft-comment
+></entry>
+</row>
+<row>
+<?PubTbl row breakpenalty="-10000"?>
+<entry>Neste Gear EP 80W-90<image
+href="Oil_can_blue_NoName_1L_PNG_0000211290.png" scale="70"></image
+></entry>
+<entry>L53005.1</entry>
+<entry>1&#xa0;liter</entry>
+<entry>Gear oil for the high-pressure pumps of the SPU and the MSPU.</entry>
+</row>
+<row>
+<entry>Neste Gear EP 80W-90<image
+href="Oil_can_blue_NoName_20L_PNG_0000211291.png" scale="80"></image
+></entry>
+<entry>L53005.20</entry>
+<entry><b>20&#xa0;liters</b></entry>
+<entry>Gear oil for the high-pressure pumps of the SPU and the MSPU.</entry>
+</row>
+<row>
+<entry>Neste Gear 220 EP <image
+href="Oil_can_blue_NoName_20L_PNG_0000211291.png" scale="80"></image
+></entry>
+<entry>L53030</entry>
+<entry><b>20&#xa0;liters</b></entry>
+<entry>Gear oil for a diesel gear box.</entry>
+</row>
+<row>
+<entry>SAE&#xa0;15W-40<image
+href="Oil_can_blue_NoName_1L_PNG_0000211290.png" scale="70"></image
+></entry>
+<entry>50000009974</entry>
+<entry>1&#xa0;liter</entry>
+<entry>Oil for the EPU and the LPU and the FTU.<?Pub _newline?>Oil
+for electric standby pumps. <draft-comment>6.2.2024 LK/Is this oil
+FOR ALL of our ESBPs, including those in systems based on the GPU?
+Ask TLa.</draft-comment></entry>
+</row>
+<row>
+<entry>Neste Turbo LXE&#xa0;15W-40<image
+href="Oil_can_blue_NoName_20L_PNG_0000211291.png" scale="80"></image
+></entry>
+<entry>L53020</entry>
+<entry><b>20&#xa0;liters</b></entry>
+<entry>Oil for the EPU, the LPU and the SPUD.</entry>
+</row>
+<row>
+<entry>Festo special oil OFSW-32<image
+href="Oil_can_blue_NoName_1L_PNG_0000211290.png" scale="70"></image
+></entry>
+<entry>50000012352</entry>
+<entry>1 liter</entry>
+<entry>Oil for the GPU oiler, the GPU pump piston driver and the oilers
+in the pneumatic standby pumps. <draft-comment>6.2.2024 LK/Is this
+said correctly: &#x201c;the oilers in the pneumatic standby pumps&#x201d;?
+Ask TLa.</draft-comment><?Pub _newpage?><draft-comment>20.8.2021 LK/Forcing
+the page break with table properties does not work in our editor.
+Ask ESR to make it possible. Newpage singleton tag used as a workaround
+until the standard feature is available.</draft-comment></entry>
+</row>
+<row>
+<entry>Temper S&#x2013;55<image height="150"
+href="Temper S -55_0000059017.JPG"></image></entry>
+<entry>L52017</entry>
+<entry>25&#xa0;liters</entry>
+<entry>Anti-freeze agent for cold spaces.</entry>
+</row>
+<row>
+<entry>Tridol S1<image height="140"
+href="Tridol S1 foam canister_0000060448.png"></image></entry>
+<entry>Z-0008029</entry>
+<entry>25&#xa0;liters</entry>
+<entry>Foam concentrate for the foam cylinder units (FCU) and the
+foam tank units (FTU).<?Pub _newline?><p>Tridol S1 is the only aqueous
+film-forming foam concentrate (AFFF) offered by Marioff.</p><p><b
+>Do not use</b> two different foam concentrates in the same system
+at the same time. Use only Tridol S1.</p></entry>
+</row>
+<row>
+<entry>Trasar TRAC106<image height="150"
+href="Trasar TRAC106 canister_0000060122.JPG"></image></entry>
+<entry>50000005277</entry>
+<entry>25&#xa0;kg</entry>
+<entry>Inhibitor chemical for the Water Treatment Unit (WTU).</entry>
+</row>
+<row>
+<entry>Nalco Silazur 100</entry>
+<entry>E50006</entry>
+<entry><draft-comment>20.8.2021 LK/Ask the SME at the warehouse what
+is the package size.</draft-comment></entry>
+<entry>Inhibitor chemical for the old inhibitor pump units.<p><b>Do
+not use</b> with the WTU.</p></entry>
+</row>
+<row>
+<entry>Distilled water</entry>
+<entry>L70010</entry>
+<entry><draft-comment>20.8.2021 LK/Ask the SME at the warehouse what
+is the package size or how we define the size of the order.</draft-comment
+></entry>
+<entry>For systems that use demineralized water.<?Pub _newpage?><draft-comment
+>20.8.2021 LK/Forcing the page break with table properties does not
+work in our editor. Ask ESR to make it possible. Newpage singleton
+tag used as a workaround until the standard feature is available.</draft-comment
+></entry>
+</row>
+<row>
+<entry>Loctite 2700<image height="35mm"
+href="Loctite 2700 50ml_0000059009.jpg"></image></entry>
+<entry>Z-0010492</entry>
+<entry>250&#xa0;ml</entry>
+<entry>Thread locker.</entry>
+</row>
+<row>
+<entry>Loctite 243<image height="35mm" href="Loctite 243_0000059003.PNG">
+</image></entry>
+<entry>50000006648</entry>
+<entry>10&#xa0;g</entry>
+<entry>Thread locker, for example for the coupling screws in the SPU
+and the MSPU.</entry>
+</row>
+<row>
+<entry>Loctite 2400<image height="35mm"
+href="Loctite 2400 50ml_0000059007.jpg"></image></entry>
+<entry>50000006649</entry>
+<entry>250&#xa0;ml</entry>
+<entry>Thread locker, for example for a hydrant assembly.</entry>
+</row>
+<row>
+<entry>Loctite 542<image height="35mm"
+href="Loctite 542 250ml_0000059005.jpg"></image></entry>
+<entry>L53130</entry>
+<entry>250&#xa0;ml</entry>
+<entry>Thread locker for tubes.</entry>
+</row>
+<row>
+<entry>Loctite 406<image height="35mm"
+href="Loctite 406 20g_0000059011.jpg"></image></entry>
+<entry>Z-0010493</entry>
+<entry>20&#xa0;g</entry>
+<entry>Instant adhesive, for example for valve signs.</entry>
+</row>
+</tbody>
+</tgroup>
+</table>

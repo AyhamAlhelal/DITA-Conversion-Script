@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Arbortext, Inc., 1988-2022, v.4002-->
+<?Pub UDT instructions _comment FontColor="red"?>
+<?Pub Inc?>
+<techinfomap id="MarioffChemicals-7BF35859" translate="yes" xml:lang="en"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="urn:ptc:names:arbortext:dita:xsd:techinfomap.xsd"
+    xmlns:ditaarch="http://dita.oasis-open.org/architecture/2005/">
+    <!--To publish this document, use no filtering conditions.-->
+    <?Pub (instructions)?>
+    <title>Marioff Chemicals</title>
+    <subtitle>Chemicals for components in HI-FOG<tm tmtype="reg"/> systems</subtitle>
+    <techinfometa>
+        <!--The <source> element is automatic. Do not edit the <source> element.-->
+        <?Pub (instructions)?>
+        <source>0000054926_AE</source>
+        <!--Edit the following elements by changing the values given to the attributes. Place the cursor into the element and press Ctrl+D.-->
+        <?Pub (instructions)?>
+        <copyright>
+            <copyryear year="2023"/>
+            <copyrholder>Marioff</copyrholder>
+        </copyright>
+        <critdates>
+            <created date="5 September 2023"/>
+            <revised modified="C"/>
+        </critdates>
+        <metadata>
+            <othermeta content="Sensitive"
+                name="Contains no technical data subject to the EAR or the ITAR."/>
+        </metadata>
+        <category>Technical Data Sheet</category>
+        <!--Write the document number into the <serialno> element. The contents of the <serialno> element appear on the document.-->
+        <?Pub (instructions)?>
+        <serialno>0000054926</serialno>
+        <productgraphic>
+            <image href="marioff_logo_(R)_h9mm_300dpi_0000092522.png"/>
+        </productgraphic>
+    </techinfometa>
+    <!--Insert the chapter and sections using the division element only. Make sure that all the references in the map are created using division element otherwise pdf output will not come properly-->
+    <?Pub (instructions)?>
+    <division format="dita" href="Concept Marioff Chemicals_0000054928.xml"
+        navtitle="Concept Marioff Chemicals" outputclass="hidden" scope="local" type="concept"/>
+    <division format="dita" href="Marioff chemicals reference data_0000055086.xml"
+        navtitle="Reference data" scope="local" type="concept"/>
+</techinfomap>
+<?Pub Caret -2?>
