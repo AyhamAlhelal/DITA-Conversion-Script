@@ -9,10 +9,16 @@ BASE_DIR = os.path.join(PROJECT_ROOT, "out")
 MAP_FILE = os.path.join(BASE_DIR, "book.ditamap")
 
 # Global dictionary to track moved files for xref updates
+# Format: {'old_file_path.dita': 'new_file_path.dita#id_mapping'}
 link_redirect_map = {}
 
-def get_root_info(content):
-    """Extracts both the tag type and the ID attribute from the root element."""
+def get_root_info(filepath):
+    """Extracts both the tag type and the ID attribute from the root element of a file."""
+    if not os.path.exists(filepath):
+        return None, None
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+        
     tag_match = re.search(r'<(topic|concept|task|reference|section)\b', content)
     id_match = re.search(r'<(?:topic|concept|task|reference|section)[^>]*\bid=["\']([^"\']+)["\']', content)
     
@@ -20,76 +26,70 @@ def get_root_info(content):
     root_id = id_match.group(1) if id_match else None
     return tag, root_id
 
-def extract_and_transform_element(filepath, to_section=False):
-    """
-    Extracts the root XML element. If to_section is True (only for generic topics), 
-    transforms it into <section> and safely unwraps the <body>.
-    """
+def extract_element_content(filepath):
+    """Extracts the entire root element block from a DITA file, discarding headers."""
     if not os.path.exists(filepath):
-        return "", None
-
+        return ""
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
     
-    # Isolate the main body, discarding XML headers and RNG models
     match = re.search(r'<(topic|concept|task|reference)\b(.*)</\1>\s*$', content, re.DOTALL)
-    if not match:
-        return "", None
-        
-    element_content = match.group(0)
-    _, element_id = get_root_info(element_content)
+    return match.group(0) if match else ""
 
-    if to_section:
-        # 1. Transform generic outer topic to section
-        element_content = re.sub(r'^<topic\b', '<section', element_content, count=1)
-        element_content = re.sub(r'</topic>\s*$', '</section>', element_content, count=1)
-        
-        # 2. Strip inner generic body tags (DITA <section> cannot contain <body>)
-        element_content = re.sub(r'<body[^>]*>', '', element_content, count=1)
-        element_content = re.sub(r'</body>', '', element_content, count=1)
+def transform_to_section(element_content):
+    """Transforms outer generic <topic> tags into <section> and strips inner <body>."""
+    # Convert outer topic tags to section
+    content = re.sub(r'^<topic\b', '<section', element_content, count=1)
+    content = re.sub(r'</topic>\s*$', '</section>', content, count=1)
+    
+    # Strip inner generic body tags
+    content = re.sub(r'<body[^>]*>', '', content, count=1)
+    content = re.sub(r'</body>', '', content, count=1)
+    return content
 
-    return element_content, element_id
-
-def inject_content(parent_filepath, child_content, is_section):
-    """
-    Injects content into the parent file based on structural rules.
-    Includes Self-Healing logic for missing, empty, or self-closing <body> tags.
-    """
-    if not child_content or not os.path.exists(parent_filepath):
+def inject_section(parent_filepath, section_content):
+    """Injects transformed section content inside the parent's <body> element."""
+    if not os.path.exists(parent_filepath):
         return
-
     with open(parent_filepath, 'r', encoding='utf-8') as f:
         content = f.read()
 
-    if is_section:
-        # Edge Case 1: Expand self-closing XML tags like <body/> to <body></body>
-        if re.search(r'<body\s*/>', content):
-            content = re.sub(r'<body\s*/>', '<body>\n    </body>', content, count=1)
-            
-        # Edge Case 2: If parent lacks a body entirely, create one after </title>
-        elif not re.search(r'</body>', content):
-            content = re.sub(r'(</title>)', r'\1\n    <body>\n    </body>', content, count=1)
-            
-        # Target the closing tag for safe injection inside the body
-        target_tag = r'</body>'
-        injection_wrapper = "\n\n    \n    "
-    else:
-        # Target the closing tag for nested topics (topics, tasks, concepts)
-        target_tag = r'</(topic|concept|task|reference)>\s*$'
-        injection_wrapper = "\n\n\n"
-
-    match = re.search(target_tag, content)
+    # Self-Healing: Expand self-closing body tags or create a body if completely missing
+    if re.search(r'<body\s*/>', content):
+        content = re.sub(r'<body\s*/>', '<body>\n    </body>', content, count=1)
+    elif not re.search(r'</body>', content):
+        content = re.sub(r'(</title>)', r'\1\n    <body>\n    </body>', content, count=1)
+        
+    match = re.search(r'</body>', content)
     if match:
         insert_pos = match.start()
-        new_content = content[:insert_pos] + injection_wrapper + child_content + "\n" + content[insert_pos:]
+        injection_wrapper = "\n\n    \n    "
+        content = content[:insert_pos] + injection_wrapper + section_content + "\n" + content[insert_pos:]
         with open(parent_filepath, 'w', encoding='utf-8') as f:
-            f.write(new_content)
+            f.write(content)
 
-def process_node(parent_elem, parent_filepath, parent_root_id):
+def inject_nested_element(parent_filepath, element_content, parent_tag):
+    """Nests an element physically before the final closing tag of the matching parent type."""
+    if not os.path.exists(parent_filepath):
+        return
+    with open(parent_filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    pattern = r'</' + re.escape(parent_tag) + r'>\s*$'
+    match = re.search(pattern, content)
+    if match:
+        insert_pos = match.start()
+        injection_wrapper = f"\n\n\n"
+        content = content[:insert_pos] + injection_wrapper + element_content + "\n" + content[insert_pos:]
+        with open(parent_filepath, 'w', encoding='utf-8') as f:
+            f.write(content)
+
+def process_node(parent_elem, parent_filepath, parent_type, parent_root_id):
     """
-    Recursively processes map nodes. Applies the DITA architecture strict rule:
-    Only generic <topic> leaves are downgraded to <section>.
-    Specialized leaves (<task>, <concept>) remain nested intact.
+    Recursively evaluates map nodes based on Type-Boundary Chunking Rules.
+    - Merges same-type elements physically.
+    - Downgrades leaf topics to sections ONLY if the parent is also a topic.
+    - Keeps different type elements independent on disk and in the map structure.
     """
     for child_elem in list(parent_elem):
         if child_elem.tag == 'topicref':
@@ -99,51 +99,57 @@ def process_node(parent_elem, parent_filepath, parent_root_id):
                 continue
                 
             child_filepath = os.path.normpath(os.path.join(BASE_DIR, href))
+            child_tag, child_id = get_root_info(child_filepath)
             
+            if not child_tag:
+                continue
+                
             has_children = len([e for e in child_elem if e.tag == 'topicref']) > 0
             is_leaf = not has_children
 
-            # 1. Process deeper children first (Bottom-Up approach)
-            if has_children:
-                if os.path.exists(child_filepath):
-                    with open(child_filepath, 'r', encoding='utf-8') as f:
-                        _, child_id = get_root_info(f.read())
-                    process_node(child_elem, child_filepath, child_id)
-
-            # 2. Inspect the child before acting
-            child_tag = None
-            if os.path.exists(child_filepath):
-                with open(child_filepath, 'r', encoding='utf-8') as f:
-                    child_tag, _ = get_root_info(f.read())
-
-            # 3. Apply Strict Architectural Rule
-            transform_to_section = is_leaf and (child_tag == 'topic')
-
-            # 4. Extract and transform current child
-            child_content, child_id = extract_and_transform_element(child_filepath, to_section=transform_to_section)
-            
-            if child_content:
-                # 5. Inject into parent file
-                inject_content(parent_filepath, child_content, is_section=transform_to_section)
-                
-                # 6. Map the link redirection
-                old_relative_path = os.path.relpath(child_filepath, BASE_DIR).replace('\\', '/')
-                new_relative_path = os.path.relpath(parent_filepath, BASE_DIR).replace('\\', '/')
-                
-                if transform_to_section and parent_root_id and child_id:
-                    new_link = f"{new_relative_path}#{parent_root_id}/{child_id}"
-                else:
-                    new_link = f"{new_relative_path}#{child_id}" if child_id else new_relative_path
+            # Rule 1: Special Case - Leaf <topic> under a <topic> parent -> Turn to <section>
+            if is_leaf and child_tag == 'topic' and parent_type == 'topic':
+                child_content = extract_element_content(child_filepath)
+                if child_content:
+                    section_content = transform_to_section(child_content)
+                    inject_section(parent_filepath, section_content)
                     
-                link_redirect_map[old_relative_path] = new_link
+                    # Track redirect for xref healing
+                    old_rel = os.path.relpath(child_filepath, BASE_DIR).replace('\\', '/')
+                    new_rel = os.path.relpath(parent_filepath, BASE_DIR).replace('\\', '/')
+                    link_redirect_map[old_rel] = f"{new_rel}#{parent_root_id}/{child_id}"
+                    
+                    # Delete the absorbed child file and clear from map
+                    if os.path.exists(child_filepath):
+                        os.remove(child_filepath)
+                    parent_elem.remove(child_elem)
 
-                # 7. Cleanup
-                if os.path.exists(child_filepath):
-                    os.remove(child_filepath)
-                parent_elem.remove(child_elem)
+            # Rule 2: Same Type Merging (topic under topic (non-leaf), task under task, concept under concept)
+            elif child_tag == parent_type:
+                # Bottom-up processing: clear child's sub-tree first into the child file
+                process_node(child_elem, child_filepath, child_tag, child_id)
+                
+                # SUCK the fully updated child content into the parent file
+                child_content = extract_element_content(child_filepath)
+                if child_content:
+                    inject_nested_element(parent_filepath, child_content, parent_type)
+                    
+                    # Track redirect for xref healing
+                    old_rel = os.path.relpath(child_filepath, BASE_DIR).replace('\\', '/')
+                    new_rel = os.path.relpath(parent_filepath, BASE_DIR).replace('\\', '/')
+                    link_redirect_map[old_rel] = f"{new_rel}#{child_id}"
+                    
+                    # Delete child file and remove node from map since it's now internal
+                    if os.path.exists(child_filepath):
+                        os.remove(child_filepath)
+                    parent_elem.remove(child_elem)
+
+            # Rule 3: Different Type boundary -> Keep independent, do NOT merge, but process its sub-tree
+            else:
+                process_node(child_elem, child_filepath, child_tag, child_id)
 
 def update_global_xrefs():
-    """Scans all remaining files and updates broken hrefs using the redirect map."""
+    """Scans all compiled DITA files to patch broken links following file structural absorption."""
     print(f"Updating cross-references for {len(link_redirect_map)} merged files...")
     
     for root_dir, _, files in os.walk(os.path.join(BASE_DIR, "dita")):
@@ -173,11 +179,12 @@ def update_global_xrefs():
                     f.write(content)
 
 def main():
-    print("Starting Smart DITA Chunking (Strict Schema Assembly)...")
+    print("Starting Type-Boundary DITA Chunking Engine...")
     if not os.path.exists(MAP_FILE):
         print("Error: Map file not found.")
         return
 
+    # Keep map doctype schema intact
     with open(MAP_FILE, 'r', encoding='utf-8') as f:
         map_content = f.read()
     header_match = re.search(r'^(.*?)<bookmap', map_content, re.DOTALL)
@@ -186,26 +193,33 @@ def main():
     tree = ET.parse(MAP_FILE)
     root = tree.getroot()
 
+    # Walk through Level 1 (Chapters / Appendices)
     for level1_elem in root:
         if level1_elem.tag in ['chapter', 'appendix', 'part']:
+            
+            # Walk through Level 2 (Main Topics acting as initial parent anchors)
             for level2_elem in list(level1_elem):
                 if level2_elem.tag == 'topicref':
                     href2 = level2_elem.get('href')
                     if href2 and href2.endswith('.dita'):
                         level2_filepath = os.path.normpath(os.path.join(BASE_DIR, href2))
+                        
                         if os.path.exists(level2_filepath):
-                            with open(level2_filepath, 'r', encoding='utf-8') as f:
-                                _, level2_root_id = get_root_info(f.read())
-                            process_node(level2_elem, level2_filepath, level2_root_id)
+                            parent_tag, parent_id = get_root_info(level2_filepath)
+                            if parent_tag:
+                                # Trigger recursive analysis starting from level 2
+                                process_node(level2_elem, level2_filepath, parent_tag, parent_id)
 
+    # Output optimized clean map file
     xml_data = ET.tostring(root, encoding='utf-8').decode('utf-8')
     final_map_xml = original_header + '<bookmap' + xml_data.split('<bookmap')[1]
     
     with open(MAP_FILE, 'w', encoding='utf-8') as f:
         f.write(final_map_xml)
         
+    # Execute cross-reference auto-healing across remaining files
     update_global_xrefs()
-    print("Architecture assembly complete. All files and links optimized.")
+    print("Process finished successfully. Content tree optimized under Type Boundaries.")
 
 if __name__ == "__main__":
     main()
