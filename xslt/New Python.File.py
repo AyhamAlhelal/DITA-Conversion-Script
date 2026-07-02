@@ -129,6 +129,14 @@ def process_node(parent_elem, parent_filepath, parent_type, parent_root_id):
                 child_content = extract_element_content(child_filepath)
                 if child_content:
                     section_content = transform_to_section(child_content)
+                    
+                    # --- NEW FIX: Auto-Heal Internal Cross-References ---
+                    # 1. Update internal links to elements: href="#old_id/element" -> href="#new_parent_id/element"
+                    section_content = re.sub(f'href=["\']#{re.escape(child_id)}/([^"\']+)["\']', f'href="#{parent_root_id}/\\1"', section_content)
+                    # 2. Update internal links to the topic itself: href="#old_id" -> href="#new_parent_id/old_id"
+                    section_content = re.sub(f'href=["\']#{re.escape(child_id)}["\']', f'href="#{parent_root_id}/{child_id}"', section_content)
+                    # ----------------------------------------------------
+
                     if inject_section(parent_filepath, section_content):
                         old_rel = os.path.relpath(child_filepath, BASE_DIR).replace('\\', '/')
                         new_rel = os.path.relpath(parent_filepath, BASE_DIR).replace('\\', '/')
