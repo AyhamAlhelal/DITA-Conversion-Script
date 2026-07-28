@@ -12,7 +12,7 @@ MAP_FILE = os.path.join(OUT_DIR, "book.ditamap")
 RELEASE_VARS_FILE = os.path.join(DITA_DIR, "release_vars.ditamap")
 
 def generate_and_replace_variables():
-    """Extract metadata, generate release_vars.ditamap with fixed relative paths for images, and update bookmap"""
+    """Extract metadata, generate release_vars.ditamap with correct format attributes for images, and update bookmap"""
     print(f"Processing {MAP_FILE} for centralized variables extraction...")
     
     if not os.path.exists(MAP_FILE):
@@ -86,18 +86,21 @@ def generate_and_replace_variables():
             '    </keydef>'
         ])
 
-    # Adjust image href with '../' because release_vars.ditamap is inside the 'dita' subfolder
+    # Add format attribute to image keydefs so Xerces/Oxygen knows they are graphics, not DITA topics
     for key, info in image_keys.items():
         fixed_href = info["href"]
         if fixed_href.startswith("images/"):
             fixed_href = "../" + fixed_href
-        vars_content.append(f'    <keydef keys="{key}" href="{fixed_href}"/>')
+        
+        # Extract file extension to set the correct format (e.g., jpg, png)
+        ext = fixed_href.split('.')[-1].lower()
+        vars_content.append(f'    <keydef keys="{key}" href="{fixed_href}" format="{ext}"/>')
 
     vars_content.append('</map>')
 
     with open(RELEASE_VARS_FILE, 'w', encoding='utf-8') as f:
         f.write('\n'.join(vars_content))
-    print(f"Success: Created release_vars.ditamap inside dita/ with proper image paths.")
+    print(f"Success: Created release_vars.ditamap with proper image formats.")
 
     # --- Update book.ditamap ---
     
