@@ -28,28 +28,28 @@ def generate_and_replace_variables():
     variables = {}
     image_keys = {}
 
-    # 1. Extract mainbooktitle
+    # Extract mainbooktitle
     title_match = re.search(r'<mainbooktitle>(.*?)</mainbooktitle>', content)
     if title_match:
         variables["ManualTitle"] = title_match.group(1).strip()
 
-    # 2. Extract prodname
+    # Extract prodname
     prod_match = re.search(r'<prodname>(.*?)</prodname>', content)
     if prod_match:
         variables["Product"] = prod_match.group(1).strip()
 
-    # 3. Extract vrm version/release
+    # Extract vrm version/release
     vrm_match = re.search(r'<vrm\s+version="([^"]+)"\s+release="([^"]+)"', content)
     if vrm_match:
         variables["Version"] = vrm_match.group(1).strip()
         variables["Release"] = vrm_match.group(2).strip()
 
-    # 4. Extract bookpartno (bookid)
+    # Extract bookpartno (bookid)
     part_match = re.search(r'<bookpartno>(.*?)</bookpartno>', content)
     if part_match:
         variables["BookPartNo"] = part_match.group(1).strip()
 
-    # 5. Extract all <data name="..." ...> elements dynamically
+    # Extract all <data name="..." ...> elements dynamically
     data_tags = re.findall(r'(<data\s+name="([^"]+)"[^>]*(?:/>|.*?</data>))', content, re.DOTALL)
     for full_tag, data_name in data_tags:
         image_match = re.search(r'<image\s+href="([^"]+)"([^>]*)>', full_tag)
@@ -64,7 +64,7 @@ def generate_and_replace_variables():
             if val_match:
                 variables[data_name] = val_match.group(1)
             else:
-                inner_match = re.search(r>(.*?)</data>', full_tag, re.DOTALL)
+                inner_match = re.search(r'>(.*?)</data>', full_tag, re.DOTALL)
                 if inner_match and inner_match.group(1).strip():
                     variables[data_name] = inner_match.group(1).strip()
 
@@ -97,7 +97,7 @@ def generate_and_replace_variables():
 
     with open(RELEASE_VARS_FILE, 'w', encoding='utf-8') as f:
         f.write('\n'.join(vars_content))
-    print(f"Success: Created release_vars.ditamap with fixed relative paths for images.")
+    print(f"Success: Created release_vars.ditamap inside dita/ with proper image paths.")
 
     # --- Update book.ditamap ---
     
