@@ -12,7 +12,7 @@ MAP_FILE = os.path.join(OUT_DIR, "book.ditamap")
 RELEASE_VARS_FILE = os.path.join(DITA_DIR, "release_vars.ditamap")
 
 def generate_and_replace_variables():
-    """Extract metadata, generate release_vars.ditamap, and update bookmap restoring image tags with keyref"""
+    """Extract metadata, generate release_vars.ditamap, and update bookmap with clean image tags"""
     print(f"Processing {MAP_FILE} for centralized variables extraction...")
     
     if not os.path.exists(MAP_FILE):
@@ -55,7 +55,10 @@ def generate_and_replace_variables():
         image_match = re.search(r'<image\s+href="([^"]+)"([^>]*)>', full_tag)
         if image_match:
             img_href = image_match.group(1)
-            img_attrs = image_match.group(2)
+            img_attrs = image_match.group(2).strip()
+            # Clean trailing slashes to prevent double slashes (//>)
+            if img_attrs.endswith('/'):
+                img_attrs = img_attrs[:-1].strip()
             image_keys[data_name] = {"href": img_href, "attrs": img_attrs}
         else:
             val_match = re.search(r'value="([^"]+)"', full_tag)
@@ -84,7 +87,6 @@ def generate_and_replace_variables():
             '    </keydef>'
         ])
 
-    # Put image hrefs inside release_vars.ditamap
     for key, info in image_keys.items():
         vars_content.append(f'    <keydef keys="{key}" href="{info["href"]}"/>')
 
@@ -110,10 +112,11 @@ def generate_and_replace_variables():
     if "Date" in variables:
         new_bookmeta.append('    <data keyref="Date"/>')
     
-    # Restore <image> tags inside data elements using keyref instead of href
+    # Reconstruct clean image tags with single closing slash
     for key, info in image_keys.items():
         new_bookmeta.append(f'    <data name="{key}">')
-        new_bookmeta.append(f'        <image keyref="{key}"{info["attrs"]}/>')
+        attr_str = f" {info['attrs']}" if info['attrs'] else ""
+        new_bookmeta.append(f'        <image keyref="{key}"{attr_str}/>')
         new_bookmeta.append('    </data>')
         
     for key in variables.keys():
@@ -124,7 +127,6 @@ def generate_and_replace_variables():
 
     content = re.sub(r'<bookmeta>.*?</bookmeta>', '\n'.join(new_bookmeta), content, flags=re.DOTALL)
 
-    # Reference release_vars.ditamap with the correct relative path
     if 'dita/release_vars.ditamap' not in content and 'release_vars.ditamap' not in content:
         mapref_tag = '\n    <mapref href="dita/release_vars.ditamap" format="ditamap"/>'
         if '<frontmatter>' in content:
@@ -136,7 +138,7 @@ def generate_and_replace_variables():
 
     with open(MAP_FILE, 'w', encoding='utf-8') as f:
         f.write(content)
-    print("Success: Updated book.ditamap restoring image tags with keyref.")
+    print("Success: Updated book.ditamap with clean image tags.")
 
 
 if __name__ == "__main__":
