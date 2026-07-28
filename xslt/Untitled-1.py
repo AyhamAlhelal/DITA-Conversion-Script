@@ -48,9 +48,9 @@ def inject_keys_to_map():
     print(f"Success! Injected 'keys' attribute into {modified_count} references.")
 
 
-def convert_and_clean_nested_links():
-    """Convert complex nested hrefs to standard direct keyrefs (file/target_id)"""
-    print("\nConverting nested hrefs to direct standard DITA keyrefs...")
+def convert_external_links_to_keyrefs():
+    """Convert external DITA hrefs to standard keyrefs, ignoring internal anchors"""
+    print("\nConverting external xref hrefs to direct standard DITA keyrefs...")
     modified_files_count = 0
     
     if not os.path.exists(DITA_DIR):
@@ -61,39 +61,58 @@ def convert_and_clean_nested_links():
         for file in files:
             if file.endswith('.dita'):
                 filepath = os.path.join(root_dir, file)
+                
                 with open(filepath, 'r', encoding='utf-8') as f:
                     content = f.read()
 
                 original_content = content
                 
-                # Regex to find complex nested links (e.g., href="file.dita#id1/id2/target")
-                matches = re.finditer(r'<xref[^>]*?href\s*=\s*"([^"]+#[^"/]+/[^"]+)"', content)
+                # Regex to find ALL <xref> tags that use href
+                matches = re.finditer(r'<xref[^>]*?href\s*=\s*"([^"]+)"', content)
 
                 for match in matches:
                     full_href = match.group(1)
                     xref_tag = match.group(0)
                     
-                    file_part = full_href.split('#')[0]
-                    key_name = os.path.splitext(os.path.basename(file_part))[0]
-                    
-                    # Extract root topic id and the deep target id
-                    anchor_parts = full_href.split('#')[1].split('/')
-                    root_topic_id = anchor_parts[0]
-                    nested_id = anchor_parts[-1]
-                    
-                    # Intelligent cleanup: If it points to the root topic, drop the suffix entirely
-                    clean_key_name = re.sub(r'[^a-zA-Z]', '', key_name).lower()
-                    clean_target = re.sub(r'[^a-zA-Z]', '', nested_id).lower()
-                    
-                    if clean_key_name == clean_target or root_topic_id == nested_id:
-                        # Points to root, use pure key name
-                        new_keyref = key_name
-                    else:
-                        # Deep internal link, use standard DITA two-part format: key/target_id
-                        new_keyref = f"{key_name}/{nested_id}"
-                    
-                    new_xref_tag = re.sub(r'href\s*=\s*"[^"]+"', f'keyref="{new_keyref}"', xref_tag)
-                    content = content.replace(xref_tag, new_xref_tag)
+                    # Skip normal web links
+                    if full_href.startswith('http') or full_href.startswith('www'):
+                        continue
+
+                    # Skip internal links (pointing to elements within the same file)
+                    if full_href.startswith('#'):
+                        continue
+
+                    new_keyref = ""
+
+                    # --- External DITA Links (e.g. href="../chapter/file.dita#...") ---
+                    if '.dita' in full_href:
+                        file_part = full_href.split('#')[0]
+                        key_name = os.path.splitext(os.path.basename(file_part))[0]
+                        
+                        if '#' in full_href:
+                            anchor = full_href.split('#')[1]
+                            if '/' in anchor:
+                                topic_id, element_id = anchor.split('/', 1)
+                                
+                                # Intelligent cleanup: drop suffix if it points to the root topic
+                                clean_key_name = re.sub(r'[^a-zA-Z]', '', key_name).lower()
+                                clean_target = re.sub(r'[^a-zA-Z]', '', element_id).lower()
+                                
+                                if clean_key_name == clean_target or topic_id == element_id:
+                                    new_keyref = key_name
+                                else:
+                                    new_keyref = f"{key_name}/{element_id}"
+                            else:
+                                # Standard topic link without deep nesting (file.dita#topic)
+                                new_keyref = key_name
+                        else:
+                            # Direct file link (file.dita)
+                            new_keyref = key_name
+
+                    # Apply the transformation if a valid external keyref was constructed
+                    if new_keyref:
+                        new_xref_tag = re.sub(r'href\s*=\s*"[^"]+"', f'keyref="{new_keyref}"', xref_tag)
+                        content = content.replace(xref_tag, new_xref_tag)
 
                 if content != original_content:
                     with open(filepath, 'w', encoding='utf-8') as f:
@@ -106,5 +125,5 @@ def convert_and_clean_nested_links():
 if __name__ == "__main__":
     print("--- Starting DITA Map & Key Architect ---")
     inject_keys_to_map()
-    convert_and_clean_nested_links()
+    convert_external_links_to_keyrefs()
     print("--- Process Completed ---")
