@@ -1,6 +1,10 @@
 import os
 import re
 import sys
+import base64
+import shutil
+import subprocess
+import urllib.request
 from xml.sax.saxutils import escape
 
 def slugify(text):
@@ -11,15 +15,48 @@ def slugify(text):
 
 def format_inline(text):
     """Convert inline Markdown formatting into DITA XML tags."""
-    # Escape basic XML characters first
     text = escape(text)
-    # Convert `code` to <codeph>
     text = re.sub(r'`([^`]+)`', r'<codeph>\1</codeph>', text)
-    # Convert **bold** to <b>
     text = re.sub(r'\*\*([^*]+)\*\*', r'<b>\1</b>', text)
-    # Convert *italic* to <i>
     text = re.sub(r'\*([^*]+)\*', r'<i>\1</i>', text)
     return text
+
+def render_mermaid_to_svg(mermaid_code, output_svg_path, mmd_source_path):
+    """
+    Save the Mermaid source file (.mmd) and render it to an SVG file.
+    Tries local Mermaid CLI (mmdc) first, then falls back to mermaid.ink API.
+    """
+    os.makedirs(os.path.dirname(output_svg_path), exist_ok=True)
+    with open(mmd_source_path, 'w', encoding='utf-8') as f:
+        f.write(mermaid_code.strip() + "\n")
+
+    # 1. Try local Mermaid CLI (mmdc) if installed in PATH
+    mmdc_path = shutil.which("mmdc")
+    if mmdc_path:
+        try:
+            subprocess.run(
+                [mmdc_path, "-i", mmd_source_path, "-o", output_svg_path, "-b", "transparent"],
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+            return True
+        except Exception as e:
+            print(f"Warning: Local mmdc failed ({e}), trying fallback renderer...")
+
+    # 2. Fallback to mermaid.ink SVG endpoint
+    try:
+        encoded = base64.urlsafe_b64encode(mermaid_code.strip().encode('utf-8')).decode('ascii')
+        url = f"[https://mermaid.ink/svg/](https://mermaid.ink/svg/){encoded}"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            svg_data = response.read()
+            with open(output_svg_path, 'wb') as out_f:
+                out_f.write(svg_data)
+        return True
+    except Exception as e:
+        print(f"Notice: Could not auto-render SVG ({e}). Saved source at '{mmd_source_path}'.")
+        return False
 
 def build_32bit_visual_table(bit_rows):
     """
@@ -49,7 +86,6 @@ def build_32bit_visual_table(bit_rows):
     if not parsed_fields:
         return ""
 
-    # Sort fields from bit 31 (left) down to bit 0 (right)
     parsed_fields.sort(key=lambda x: x[0], reverse=True)
 
     xml = ['      <table frame="all" rowsep="1" colsep="1" outputclass="bitfield-visual">']
@@ -58,7 +94,6 @@ def build_32bit_visual_table(bit_rows):
         xml.append(f'          <colspec colname="c{i}" colnum="{i}" colwidth="1*"/>')
     xml.append('          <thead>')
     xml.append('            <row>')
-    # Number bits from 31 down to 0
     for bit_num in range(31, -1, -1):
         xml.append(f'              <entry align="center">{bit_num}</entry>')
     xml.append('            </row>')
@@ -107,7 +142,7 @@ def convert_md_to_dita(md_filepath, out_dir="dita_output"):
     content = re.sub(r'<!--.*?-->', '', content, flags=re.DOTALL)
     lines = content.splitlines()
 
-    # 1. Validate that there is exactly one level-1 heading (#)
+    # Validate that there is exactly one level-1 heading (#)
     h1_lines = [line for line in lines if re.match(r'^#\s+[^#]', line)]
     if len(h1_lines) == 0:
         raise ValueError("Error: The Markdown file does not contain a level-1 heading (#).")
@@ -115,7 +150,8 @@ def convert_md_to_dita(md_filepath, out_dir="dita_output"):
         raise ValueError(f"Error: The file must contain exactly one level-1 heading (#), found {len(h1_lines)}.")
 
     doc_title = re.sub(r'^#\s+', '', h1_lines[0]).strip()
-    os.makedirs(out_dir, exist_ok=True)
+    images_dir = os.path.join(out_dir, "images")
+    os.makedirs(images_dir, exist_ok=True)
 
     # Split content by level-2 headings (##) into separate chapters
     chapters = []
@@ -137,6 +173,7 @@ def convert_md_to_dita(md_filepath, out_dir="dita_output"):
         chapters.append(current_chapter)
 
     topic_files = []
+    mermaid_counter = 1
 
     # Generate a DITA topic file for each level-2 heading (##)
     for chap in chapters:
@@ -157,9 +194,11 @@ def convert_md_to_dita(md_filepath, out_dir="dita_output"):
         i = 0
         c_lines = chap['lines']
         expect_visual_bitfield = False
+        current_context_title = c_title
 
         while i < len(c_lines):
-            line = c_lines[i].strip()
+            raw_line = c_lines[i]
+            line = raw_line.strip()
             if not line:
                 i += 1
                 continue
@@ -170,6 +209,7 @@ def convert_md_to_dita(md_filepath, out_dir="dita_output"):
                 if in_section:
                     xml_lines.append('    </section>')
                 sec_title = h_sub.group(2).strip()
+                current_context_title = sec_title
                 sec_id = slugify(sec_title)
                 xml_lines.append(f'    <section id="{sec_id}">')
                 xml_lines.append(f'      <title>{format_inline(sec_title)}</title>')
@@ -177,7 +217,33 @@ def convert_md_to_dita(md_filepath, out_dir="dita_output"):
                 i += 1
                 continue
 
-            # Map images ![Alt](path) to <fig> elements
+            # Handle ```mermaid code blocks
+            if line.startswith('```mermaid'):
+                i += 1
+                mermaid_lines = []
+                while i < len(c_lines) and not c_lines[i].strip().startswith('```'):
+                    mermaid_lines.append(c_lines[i])
+                    i += 1
+                if i < len(c_lines):
+                    i += 1  # Skip closing ```
+
+                mermaid_code = "\n".join(mermaid_lines)
+                diagram_slug = f"{slugify(current_context_title)}_diagram_{mermaid_counter}"
+                mermaid_counter += 1
+
+                rel_svg_path = f"images/{diagram_slug}.svg"
+                full_svg_path = os.path.join(out_dir, "images", f"{diagram_slug}.svg")
+                full_mmd_path = os.path.join(out_dir, "images", f"{diagram_slug}.mmd")
+
+                render_mermaid_to_svg(mermaid_code, full_svg_path, full_mmd_path)
+
+                xml_lines.append('      <fig>')
+                xml_lines.append(f'        <title>{format_inline(current_context_title)} Diagram</title>')
+                xml_lines.append(f'        <image href="{rel_svg_path}" placement="break"/>')
+                xml_lines.append('      </fig>')
+                continue
+
+            # Map standard images ![Alt](path) to <fig> elements
             img_match = re.match(r'^!\[([^\]]*)\]\(([^)]+)\)', line)
             if img_match:
                 fig_title, img_href = img_match.group(1), img_match.group(2)
@@ -200,7 +266,7 @@ def convert_md_to_dita(md_filepath, out_dir="dita_output"):
                     rows = []
                     for tl in table_lines[2:]:
                         rows.append([c.strip() for c in tl.strip('|').split('|')])
-                    
+
                     # If this is a bit assignment table, generate the 32-bit visual bar first
                     if expect_visual_bitfield or (headers and headers[0].lower() == 'bit'):
                         visual_bar = build_32bit_visual_table(rows)
@@ -244,8 +310,8 @@ def convert_md_to_dita(md_filepath, out_dir="dita_output"):
     with open(map_path, 'w', encoding='utf-8') as mf:
         mf.write("\n".join(map_lines))
 
-    print(f"Conversion complete! Generated {len(topic_files)} DITA topics and map in '{out_dir}'.")
+    print(f"Conversion complete! Generated {len(topic_files)} DITA topics, diagrams, and map in '{out_dir}'.")
 
 if __name__ == "__main__":
-    input_md = sys.argv[1] if len(sys.argv) > 1 else "trm-template.md"
+    input_md = sys.argv[1] if len(sys.argv) > 1 else "TRM-Template.md"
     convert_md_to_dita(input_md)
