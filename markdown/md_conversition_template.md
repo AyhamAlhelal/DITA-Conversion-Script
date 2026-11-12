@@ -1,12 +1,12 @@
 <!-- =====================================================================
   SYNOPSYS HAPS GROUP - IP BLOCK TECHNICAL REFERENCE MANUAL (TRM) TEMPLATE
   Authoring Guidelines for DITA XML Automation:
-  1. Do NOT skip heading levels (use #, ##, ### in order).
-  2. Always keep at least one introductory sentence under EVERY heading.
-  3. Do NOT use inline HTML tags (e.g., <br>, <table>).
+  1. Every file MUST have EXACTLY ONE level-1 heading (#). Use as many sub-headings (##, ###, ####) as needed without skipping levels.
+  2. Always include at least one introductory sentence under EVERY heading before starting a sub-heading, table, or diagram.
+  3. Do NOT use inline HTML tags (e.g., <br>, <table>, <font>).
   4. Wrap register names, addresses, signals, and bit values in backticks (`).
-  5. Save all diagrams in the "images/" folder as .svg or .png.
-  Note: Standard Preface and Signal Conventions are injected automatically by DITA.
+  5. Diagrams: You can use EITHER inline ```mermaid code blocks OR standard image links ![Title](images/file.svg).
+  Note: Standard Preface and Signal Conventions are injected automatically by the DITA pipeline.
 ====================================================================== -->
 
 # [IP Block Name] Technical Reference Manual (TRM)
@@ -29,7 +29,15 @@ This document seeks to provide a standard way to describe IP designs developed b
 
 This chapter describes the core functionality of the IP block. An overview is provided first (including a high-level block diagram), followed by a detailed functional description.
 
-![High-Level Block Diagram](images/ip_block_overview.png)
+<!-- You can define diagrams using Mermaid (as shown below) OR link an image: ![High-Level Block Diagram](images/ip_block_overview.svg) -->
+
+```mermaid
+flowchart LR
+    subgraph IP_Block ["IP Block"]
+        SB1["Sub-Block One"]
+        JTAG_CTRL["JTAG Controller"]
+    end
+```
 
 ### Functional Description
 
@@ -43,7 +51,11 @@ Describe how this IP block fits into a larger system and highlight any constrain
 
 Describe how the IP block is connected within a larger system and how its interfaces interact with external components.
 
-![System Connectivity Diagram](images/system_connectivity.png)
+```mermaid
+flowchart LR
+    Other["Other Component"] ---|"GROUPONE"| IP["IP Block"]
+    IP ---|"JTAG"| JTAG_P["JTAG Peripheral"]
+```
 
 ## Programmer's Model
 
@@ -162,13 +174,22 @@ This section describes the connection topology and timing requirements for the G
 
 Describe the signal interaction and handshaking protocol for the Group One interface.
 
-![Group One Interface Signals](images/group_one_signals.png)
+```mermaid
+flowchart LR
+    IP["IP Block"] -->|"CLK1"| Target["Target"]
+    IP -->|"CLK2"| Target
+    IP -->|"RESET_N"| Target
+    IP -->|"RESET_OUT_N"| Target
+    IP -->|"SIGNALONEB[3:0]"| Target
+    IP <-->|"SIGNALONEAB[1:0]"| Target
+    Target -->|"SIGNALONEA"| IP
+```
 
 #### Timing Diagram
 
 Provide the timing explanation and waveform diagram for the Group One interface.
 
-![Group One Timing Diagram](images/group_one_timing.png)
+![Group One Timing Diagram](images/group_one_timing.svg)
 
 ### JTAG Interface
 
@@ -178,13 +199,20 @@ This section describes the connection topology and timing requirements for the J
 
 Describe the signal interaction for the JTAG interface.
 
-![JTAG Interface Signals](images/jtag_signals.png)
+```mermaid
+flowchart LR
+    IP["IP Block"] -->|"TCK"| Target["Target"]
+    IP -->|"TRST"| Target
+    IP -->|"TMS"| Target
+    IP -->|"TDI"| Target
+    Target -->|"TDO"| IP
+```
 
 #### Timing Diagram
 
 Provide the timing explanation and waveform diagram for the JTAG interface.
 
-![JTAG Timing Diagram](images/jtag_timing.png)
+![JTAG Timing Diagram](images/jtag_timing.svg)
 
 ## Glossary
 
