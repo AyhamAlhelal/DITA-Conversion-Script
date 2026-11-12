@@ -96,4 +96,156 @@ def build_cals_table(headers, rows):
             cell_val = r[idx] if idx < len(r) else ""
             xml.append(f'              <entry>{format_inline(cell_val)}</entry>')
         xml.append('            </row>')
-    xml.append('
+    xml.append('          </tbody>\n        </tgroup>\n      </table>')
+    return "\n".join(xml)
+
+def convert_md_to_dita(md_filepath, out_dir="dita_output"):
+    with open(md_filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # Strip HTML comments from the Markdown content
+    content = re.sub(r'<!--.*?-->', '', content, flags=re.DOTALL)
+    lines = content.splitlines()
+
+    # 1. Validate that there is exactly one level-1 heading (#)
+    h1_lines = [line for line in lines if re.match(r'^#\s+[^#]', line)]
+    if len(h1_lines) == 0:
+        raise ValueError("Error: The Markdown file does not contain a level-1 heading (#).")
+    elif len(h1_lines) > 1:
+        raise ValueError(f"Error: The file must contain exactly one level-1 heading (#), found {len(h1_lines)}.")
+
+    doc_title = re.sub(r'^#\s+', '', h1_lines[0]).strip()
+    os.makedirs(out_dir, exist_ok=True)
+
+    # Split content by level-2 headings (##) into separate chapters
+    chapters = []
+    current_chapter = None
+
+    for line in lines:
+        if re.match(r'^#\s+[^#]', line):
+            continue
+        h2_match = re.match(r'^##\s+(.+)', line)
+        if h2_match:
+            if current_chapter:
+                chapters.append(current_chapter)
+            current_chapter = {'title': h2_match.group(1).strip(), 'lines': []}
+        else:
+            if current_chapter is not None:
+                current_chapter['lines'].append(line)
+
+    if current_chapter:
+        chapters.append(current_chapter)
+
+    topic_files = []
+
+    # Generate a DITA topic file for each level-2 heading (##)
+    for chap in chapters:
+        c_title = chap['title']
+        c_id = slugify(c_title)
+        filename = f"{c_id}.dita"
+        topic_files.append((filename, c_title))
+
+        xml_lines = [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">',
+            f'<topic id="{c_id}">',
+            f'  <title>{format_inline(c_title)}</title>',
+            '  <body>'
+        ]
+
+        in_section = False
+        i = 0
+        c_lines = chap['lines']
+        expect_visual_bitfield = False
+
+        while i < len(c_lines):
+            line = c_lines[i].strip()
+            if not line:
+                i += 1
+                continue
+
+            # Map sub-headings (### or ####) to <section> elements
+            h_sub = re.match(r'^(#{3,4})\s+(.+)', line)
+            if h_sub:
+                if in_section:
+                    xml_lines.append('    </section>')
+                sec_title = h_sub.group(2).strip()
+                sec_id = slugify(sec_title)
+                xml_lines.append(f'    <section id="{sec_id}">')
+                xml_lines.append(f'      <title>{format_inline(sec_title)}</title>')
+                in_section = True
+                i += 1
+                continue
+
+            # Map images ![Alt](path) to <fig> elements
+            img_match = re.match(r'^!\[([^\]]*)\]\(([^)]+)\)', line)
+            if img_match:
+                fig_title, img_href = img_match.group(1), img_match.group(2)
+                xml_lines.append('      <fig>')
+                if fig_title:
+                    xml_lines.append(f'        <title>{format_inline(fig_title)}</title>')
+                xml_lines.append(f'        <image href="{escape(img_href)}" placement="break"/>')
+                xml_lines.append('      </fig>')
+                i += 1
+                continue
+
+            # Map standard pipe tables | Col1 | Col2 |
+            if line.startswith('|'):
+                table_lines = []
+                while i < len(c_lines) and c_lines[i].strip().startswith('|'):
+                    table_lines.append(c_lines[i].strip())
+                    i += 1
+                if len(table_lines) >= 2:
+                    headers = [c.strip() for c in table_lines[0].strip('|').split('|')]
+                    rows = []
+                    for tl in table_lines[2:]:
+                        rows.append([c.strip() for c in tl.strip('|').split('|')])
+                    
+                    # If this is a bit assignment table, generate the 32-bit visual bar first
+                    if expect_visual_bitfield or (headers and headers[0].lower() == 'bit'):
+                        visual_bar = build_32bit_visual_table(rows)
+                        if visual_bar:
+                            xml_lines.append(visual_bar)
+                        expect_visual_bitfield = False
+
+                    xml_lines.append(build_cals_table(headers, rows))
+                continue
+
+            # Check for "Register bit assignments" marker to trigger visual bitfield generation
+            if "register bit assignments" in line.lower():
+                expect_visual_bitfield = True
+
+            # Standard paragraph
+            xml_lines.append(f'      <p>{format_inline(line)}</p>')
+            i += 1
+
+        if in_section:
+            xml_lines.append('    </section>')
+
+        xml_lines.append('  </body>\n</topic>')
+
+        with open(os.path.join(out_dir, filename), 'w', encoding='utf-8') as out_f:
+            out_f.write("\n".join(xml_lines))
+
+    # Generate main DITA Map
+    map_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">',
+        f'<map id="{slugify(doc_title)}_map">',
+        f'  <title>{escape(doc_title)}</title>',
+        '  <!-- Standard boilerplate Preface topic is injected automatically here -->',
+        '  <!-- <topicref href="common/preface_signal_conventions.dita"/> -->'
+    ]
+    for fname, ftitle in topic_files:
+        map_lines.append(f'  <topicref href="{fname}" navtitle="{escape(ftitle)}"/>')
+    map_lines.append('</map>')
+
+    map_path = os.path.join(out_dir, "trm.ditamap")
+    with open(map_path, 'w', encoding='utf-8') as mf:
+        mf.write("\n".join(map_lines))
+
+    print(f"Conversion complete! Generated {len(topic_files)} DITA topics and map in '{out_dir}'.")
+
+if __name__ == "__main__":
+    input_md = sys.argv[1] if len(sys.argv) > 1 else "trm-template.md"
+    convert_md_to_dita(input_md)
